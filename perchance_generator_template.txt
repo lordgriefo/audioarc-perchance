@@ -1,0 +1,598 @@
+================================================================================
+AUDIOARC PERCHANCE EDITION - READY-TO-PASTE GENERATOR TEMPLATE
+================================================================================
+
+How to deploy on Perchance (takes 60 seconds):
+1. Go to: https://perchance.org/create (or https://perchance.org/audioarc)
+2. You will see two panels in the editor:
+   - The LEFT panel is the "Lists" panel (Perchance logic & lists)
+   - The RIGHT/BOTTOM panel is the "HTML" panel (UI layout & styling)
+3. Paste SECTION 1 into the LEFT panel.
+4. Paste SECTION 2 into the RIGHT (HTML) panel.
+5. Click "Save" in the top bar. Your generator is now LIVE at perchance.org/<your-chosen-name>!
+
+================================================================================
+SECTION 1: PASTE THIS IN THE LEFT (LISTS) PANEL
+================================================================================
+
+title = AudioArc: AI Music Video & Sora Scene Director
+ai = {import:ai-text-plugin}
+
+// -------------------------------------------------------------
+// Visual Styles
+// -------------------------------------------------------------
+visualStyle
+  Cinematic 35mm Film (Grainy Kodak Vision3 500T, anamorphic lens flare, shallow depth of field)
+  Neo-Noir Cyberpunk (Vibrant neon reflections, wet rain-slicked asphalt, high contrast chiaroscuro)
+  Vintage Kodachrome 1970s (Warm nostalgic saturation, soft halation, vintage optics, analog patina)
+  Surrealist Dreamscape (Melting horizons, hypnotic lighting, non-Euclidean perspective, ethereal atmosphere)
+  Anime Cinematic / Makoto Shinkai (Lush volumetric clouds, golden hour sunset rays, photorealistic anime textures)
+  Dark Gothic Fantasy (Moody candlelight, baroque architecture, brooding mist, heavy shadow vignettes)
+  A24 Folk Horror (Sun-bleached natural daylight, pastel florals, unsettling symmetry, handheld tactile camera)
+  French New Wave 1960s (Monochrome black and white, jump-cut kineticism, street realism, natural breeze)
+
+// -------------------------------------------------------------
+// Director & Aesthetic Influences
+// -------------------------------------------------------------
+influence
+  David Lynch (Eerie uncanny valley, hypnotic slow pans, red curtains, industrial drone, flickering light)
+  Wes Anderson (Rigid symmetrical framing, pastel color palettes, flat perspective, whip pans, quirky staging)
+  Denis Villeneuve (Monumental monolithic scale, brutalist architecture, sweeping aerial vistas, atmospheric fog)
+  Wong Kar-wai (Step-printed slow shutter blur, neon greens and smoky reds, melancholic longing, framed reflections)
+  Guillermo del Toro (Clockwork mechanics, amber and cobalt contrasts, ornate creatures, bioluminescent glow)
+  Stanley Kubrick (One-point central perspective, hypnotic tracking shots, cold sterile grandeur, dramatic tension)
+  Hype Williams (Extreme fish-eye lens, hyper-glossy reflections, high-fashion styling, saturated primary colors)
+
+// -------------------------------------------------------------
+// Camera Movements
+// -------------------------------------------------------------
+cameraMovement
+  Slow cinematic dolly push-in toward subject with shallow depth of field
+  Dynamic 360-degree orbital tracking shot keeping the subject centered
+  Sweeping crane jib rise starting low at feet and ascending into an overhead bird's-eye perspective
+  Handheld tactile documentary follow shot with natural micro-shakes and organic momentum
+  Whip pan transition snapping from the character's reaction to the surrounding environment
+  Low-angle Dutch tilt creeping forward with dramatic floor shadows
+  Anamorphic rack focus shifting from raindrops in the foreground to the emotional subject in the background
+
+// -------------------------------------------------------------
+// Film Stock & Optics
+// -------------------------------------------------------------
+filmStock
+  Shot on 35mm Kodak Vision3 500T, Cooke Anamorphic/i prime lenses, organic fine grain
+  Shot on 16mm Arri SR3, vintage Zeiss Super Speed T1.3 lenses, warm halation and texture
+  Shot on IMAX 70mm, Hasselblad medium format glass, razor-sharp edge-to-edge cinematic clarity
+  Shot on Vintage Super 8mm analog reel, light leaks, vignette, dust and gate weave
+
+// -------------------------------------------------------------
+// Sora Video Prompt Generator Rule
+// -------------------------------------------------------------
+soraDirective
+  Cinematic high-fidelity video clip. Natural lifelike movement with authentic facial expressions, subtle gaze shifts, and realistic physical weight. The camera executes a smooth camera move with accurate physical lighting and zero digital artifacting.
+
+output
+  [title]
+
+================================================================================
+SECTION 2: PASTE THIS IN THE RIGHT (HTML) PANEL
+================================================================================
+
+<div class="audioarc-container">
+  <!-- Header -->
+  <header class="header">
+    <div class="logo-group">
+      <span class="icon">🎬</span>
+      <div>
+        <h1>AudioArc</h1>
+        <p class="subtitle">Perchance Edition • 5–10s Scene & Sora Prompt Director</p>
+      </div>
+    </div>
+    <div class="badge">Client-Side Web Audio</div>
+  </header>
+
+  <!-- Control Controls -->
+  <div class="card">
+    <div class="grid-2">
+      <div class="input-group">
+        <label>🎵 Song / Track Title</label>
+        <input type="text" id="trackTitle" value="Midnight Echoes" placeholder="Enter song title...">
+      </div>
+      <div class="input-group">
+        <label>⏱️ Track Duration (Seconds)</label>
+        <input type="number" id="trackDuration" value="60" min="10" max="600" step="1">
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="input-group">
+        <label>🎨 Visual Aesthetic</label>
+        <select id="styleSelect">
+          <option value="[visualStyle]">Randomize from Library ([visualStyle])</option>
+          <option value="Cinematic 35mm Film (Kodak Vision3 500T, anamorphic lenses)">Cinematic 35mm Film</option>
+          <option value="Neo-Noir Cyberpunk (Wet reflections, neon contrasts)">Neo-Noir Cyberpunk</option>
+          <option value="Vintage 1970s Kodachrome (Warm analog saturation)">Vintage 1970s Kodachrome</option>
+          <option value="Surrealist Dreamscape (Hypnotic lighting, non-Euclidean)">Surrealist Dreamscape</option>
+          <option value="Anime Cinematic / Makoto Shinkai (Golden hour, volumetric rays)">Anime Cinematic</option>
+          <option value="Dark Gothic Fantasy (Candlelight, baroque shadows)">Dark Gothic Fantasy</option>
+          <option value="A24 Folk Horror (Sun-bleached natural daylight, pastel florals)">A24 Folk Horror</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label>🎭 Director Influence</label>
+        <select id="influenceSelect">
+          <option value="[influence]">Randomize Director ([influence])</option>
+          <option value="David Lynch (Eerie uncanny valley, hypnotic red curtains)">David Lynch</option>
+          <option value="Wes Anderson (Symmetrical framing, pastel colors)">Wes Anderson</option>
+          <option value="Denis Villeneuve (Monumental scale, brutalist architecture)">Denis Villeneuve</option>
+          <option value="Wong Kar-wai (Step-printed slow shutter blur, neon reflections)">Wong Kar-wai</option>
+          <option value="Guillermo del Toro (Amber & cobalt contrast, ornate textures)">Guillermo del Toro</option>
+          <option value="Stanley Kubrick (One-point perspective, cold tracking shots)">Stanley Kubrick</option>
+          <option value="Hype Williams (Extreme fish-eye, high-gloss reflections)">Hype Williams</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="input-group">
+      <div class="label-row">
+        <label>📝 Lyrics / Script (or Audio Beats)</label>
+        <span class="hint">Paste lyrics or leave blank for dynamic musical cues</span>
+      </div>
+      <textarea id="lyricsInput" rows="5" placeholder="[Intro]
+Distant synth pads swell under city rain...
+
+[Verse 1]
+Walking past the neon signs
+Counting the cracks in the street lines
+I saw your reflection in the glass
+
+[Chorus]
+We break through the atmosphere
+Nothing left to lose from here!"></textarea>
+    </div>
+
+    <div class="button-row">
+      <button class="btn btn-primary" onclick="generateScenes()">
+        ⚡ Generate 5–10s Scene Storyboard
+      </button>
+      <button class="btn btn-secondary" onclick="randomizeAll()">
+        🎲 Randomize Influences & Reroll
+      </button>
+      <button class="btn btn-outline" onclick="copyAllPrompts()">
+        📋 Copy All Prompts
+      </button>
+    </div>
+  </div>
+
+  <!-- Output Storyboard Stream -->
+  <div id="resultsContainer" class="results-container">
+    <div class="placeholder-box">
+      Click <b>Generate 5–10s Scene Storyboard</b> above to slice the song into timed scenes and create Master Image, Video, and Sora prompts!
+    </div>
+  </div>
+</div>
+
+<style>
+  :root {
+    --bg-main: #0a0a0c;
+    --card-bg: #141418;
+    --card-border: #26262f;
+    --accent: #3b82f6;
+    --accent-hover: #2563eb;
+    --text-main: #f3f4f6;
+    --text-muted: #9ca3af;
+    --gold: #fbbf24;
+    --emerald: #10b981;
+    --purple: #8b5cf6;
+  }
+
+  body {
+    margin: 0;
+    padding: 24px;
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.5;
+  }
+
+  .audioarc-container {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--card-border);
+  }
+
+  .logo-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo-group .icon {
+    font-size: 2.2rem;
+  }
+
+  .logo-group h1 {
+    margin: 0;
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, #60a5fa, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .subtitle {
+    margin: 2px 0 0;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .badge {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--emerald);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    padding: 4px 10px;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 24px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+  }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  @media (max-width: 640px) {
+    .grid-2 { grid-template-columns: 1fr; }
+  }
+
+  .input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+
+  .label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #d1d5db;
+  }
+
+  .hint {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  input, select, textarea {
+    background: #09090b;
+    border: 1px solid var(--card-border);
+    color: var(--text-main);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 0.85rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--accent);
+  }
+
+  textarea {
+    resize: vertical;
+    font-family: monospace;
+    font-size: 0.8rem;
+  }
+
+  .button-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 8px;
+  }
+
+  .btn {
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #2563eb, #4f46e5);
+    color: white;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  }
+
+  .btn-primary:hover {
+    filter: brightness(1.1);
+  }
+
+  .btn-secondary {
+    background: #27272a;
+    color: var(--text-main);
+    border: 1px solid var(--card-border);
+  }
+
+  .btn-secondary:hover {
+    background: #3f3f46;
+  }
+
+  .btn-outline {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--card-border);
+  }
+
+  .btn-outline:hover {
+    color: white;
+    border-color: #52525b;
+  }
+
+  .results-container {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .placeholder-box {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted);
+    border: 2px dashed var(--card-border);
+    border-radius: 16px;
+    font-size: 0.9rem;
+  }
+
+  .scene-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: border-color 0.2s;
+  }
+
+  .scene-card:hover {
+    border-color: #3f3f46;
+  }
+
+  .scene-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding-bottom: 10px;
+  }
+
+  .scene-title {
+    font-weight: 800;
+    font-size: 0.95rem;
+    color: #60a5fa;
+  }
+
+  .scene-badges {
+    display: flex;
+    gap: 8px;
+    font-size: 0.75rem;
+  }
+
+  .scene-badge-time {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 2px 8px;
+    border-radius: 6px;
+    color: #9ca3af;
+    font-mono: true;
+  }
+
+  .scene-badge-group {
+    background: rgba(139, 92, 246, 0.2);
+    color: #c4b5fd;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-weight: 600;
+  }
+
+  .scene-lyric {
+    color: var(--gold);
+    font-style: italic;
+    font-size: 0.9rem;
+    background: rgba(251, 191, 36, 0.08);
+    padding: 8px 12px;
+    border-radius: 8px;
+    border-left: 3px solid var(--gold);
+  }
+
+  .prompt-box {
+    background: #09090b;
+    border: 1px solid #1f1f23;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 0.8rem;
+    line-height: 1.6;
+  }
+
+  .prompt-label {
+    font-weight: 700;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+    display: block;
+  }
+
+  .prompt-label-image { color: #60a5fa; }
+  .prompt-label-camera { color: #f472b6; }
+  .prompt-label-sora { color: #34d399; }
+</style>
+
+<script>
+  function formatSeconds(sec) {
+    const m = Math.floor(sec / 60);
+    const s = Math.floor(sec % 60);
+    return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+  }
+
+  function randomizeAll() {
+    update();
+    setTimeout(generateScenes, 100);
+  }
+
+  function generateScenes() {
+    const title = document.getElementById('trackTitle').value || 'Cinematic Track';
+    const totalDuration = Math.max(10, parseInt(document.getElementById('trackDuration').value) || 60);
+    const style = document.getElementById('styleSelect').value;
+    const influence = document.getElementById('influenceSelect').value;
+    const rawLyrics = document.getElementById('lyricsInput').value.trim();
+
+    // Slicing algorithm: 5-8 seconds per scene
+    const targetSceneDuration = 6.0;
+    const sceneCount = Math.max(2, Math.round(totalDuration / targetSceneDuration));
+    const sceneDuration = totalDuration / sceneCount;
+
+    // Parse lyrics
+    const lyricLines = rawLyrics ? rawLyrics.split('\n').filter(l => l.trim() && !l.trim().startsWith('[')) : [];
+
+    const cameraMoves = [
+      "Slow cinematic dolly push-in toward the subject with shallow depth of field",
+      "Dynamic 360-degree orbital tracking shot keeping the subject centered",
+      "Sweeping crane jib rise starting low at ground level and ascending overhead",
+      "Handheld tactile follow shot with subtle organic camera breath and grain",
+      "Whip pan transition tracking from the subject's gaze into the environment",
+      "Low-angle Dutch tilt shot creeping forward with dramatic architectural shadows"
+    ];
+
+    const filmStocks = [
+      "shot on 35mm Kodak Vision3 500T, anamorphic prime lenses, organic grain",
+      "shot on 16mm Arri SR3, vintage high-speed glass, warm analog halation",
+      "shot on IMAX 70mm, medium format clarity, atmospheric volumetric light",
+      "shot on vintage 1970s Panavision optics with subtle horizontal lens flares"
+    ];
+
+    const resultsDiv = document.getElementById('resultsContainer');
+    let html = '';
+
+    for (let i = 0; i < sceneCount; i++) {
+      const startSec = i * sceneDuration;
+      const endSec = (i === sceneCount - 1) ? totalDuration : (i + 1) * sceneDuration;
+      const dur = Math.round((endSec - startSec) * 10) / 10;
+
+      // Section group name
+      let groupName = 'Verse';
+      const progress = (i + 0.5) / sceneCount;
+      if (progress < 0.15) groupName = 'Intro';
+      else if (progress > 0.85) groupName = 'Outro';
+      else if (progress > 0.4 && progress < 0.65) groupName = 'Chorus / Drop';
+      else if (progress >= 0.65 && progress <= 0.8) groupName = 'Bridge';
+
+      // Lyric for this scene
+      let sceneLyric = '';
+      if (lyricLines.length > 0) {
+        const lineIdx = Math.floor((i / sceneCount) * lyricLines.length);
+        sceneLyric = lyricLines[lineIdx] || lyricLines[lyricLines.length - 1];
+      } else {
+        sceneLyric = `[Instrumental ${groupName} - dynamic sonic movement]`;
+      }
+
+      const cameraMove = cameraMoves[i % cameraMoves.length];
+      const stock = filmStocks[i % filmStocks.length];
+
+      const imagePrompt = `${sceneLyric}. ${style}. Director influence: ${influence}. Cinematic framing, ${stock}, dramatic high contrast studio lighting, 8k resolution, cinematic masterpiece.`;
+
+      const soraPrompt = `A continuous ${dur}s cinematic shot in ${style} aesthetic, influenced by ${influence}. ${sceneLyric}. ${cameraMove}. Characters exhibit authentic micro-gestures, subtle gaze movements, and realistic body language with physically accurate lighting and film texture.`;
+
+      html += `
+        <div class="scene-card">
+          <div class="scene-header">
+            <span class="scene-title">SCENE ${i + 1}</span>
+            <div class="scene-badges">
+              <span class="scene-badge-time">${formatSeconds(startSec)} - ${formatSeconds(endSec)} (${dur}s)</span>
+              <span class="scene-badge-group">${groupName}</span>
+            </div>
+          </div>
+          <div class="scene-lyric">"${sceneLyric}"</div>
+          
+          <div class="prompt-box">
+            <span class="prompt-label prompt-label-image">🖼️ Master Image Prompt (Midjourney / Flux / SD)</span>
+            ${imagePrompt}
+          </div>
+
+          <div class="prompt-box">
+            <span class="prompt-label prompt-label-camera">🎥 Camera Motion Directive</span>
+            ${cameraMove}
+          </div>
+
+          <div class="prompt-box">
+            <span class="prompt-label prompt-label-sora">⚡ Sora / Veo / Kling High-Fidelity Video Prompt</span>
+            ${soraPrompt}
+          </div>
+        </div>
+      `;
+    }
+
+    resultsDiv.innerHTML = html;
+  }
+
+  function copyAllPrompts() {
+    const cards = document.querySelectorAll('.scene-card');
+    if (!cards || cards.length === 0) {
+      alert('Generate scenes first before copying!');
+      return;
+    }
+
+    let text = '=== AUDIOARC SCENE PROMPTS ===\n\n';
+    cards.forEach((card, idx) => {
+      const title = card.querySelector('.scene-title')?.innerText || `Scene ${idx+1}`;
+      const time = card.querySelector('.scene-badge-time')?.innerText || '';
+      const lyric = card.querySelector('.scene-lyric')?.innerText || '';
+      const boxes = card.querySelectorAll('.prompt-box');
+
+      text += `${title} ${time}\nLyric: ${lyric}\n`;
+      boxes.forEach(b => {
+        text += b.innerText + '\n';
+      });
+      text += '\n----------------------------------------\n\n';
+    });
+
+    navigator.clipboard.writeText(text).then(() => {
+      alert('Copied all scene prompts to clipboard!');
+    });
+  }
+
+  // Auto-generate initial scenes on load
+  window.addEventListener('DOMContentLoaded', () => {
+    generateScenes();
+  });
+</script>
