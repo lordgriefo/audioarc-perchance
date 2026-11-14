@@ -1,0 +1,8 @@
+{
+  "name": "AudioArc: AI Filmmaking Assistant (Perchance Edition)",
+  "description": "Professional AI Filmmaking Assistant converting lyrics and audio into structured cinematic storyboards, animatics, and scripts with support for Perchance, Pollinations, Gemini, OpenAI, Ollama, LM Studio, and OpenRouter.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
