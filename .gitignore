@@ -5,6 +5,7 @@ bun.lock
 
 # Production build
 dist/
+dist-single/
 
 # Local Environment Variables & Secrets
 .env
