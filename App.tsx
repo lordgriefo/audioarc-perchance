@@ -65,6 +65,11 @@ import { AIContrastBoosterModal } from './AIContrastBoosterModal';
 import { WaveformBoundaryEditor } from './WaveformBoundaryEditor';
 import { PWAInstallButton } from './PWAInstallButton';
 import { BeatSceneSegmentationModal } from './BeatSceneSegmentationModal';
+import { 
+  generateClientSideBeats, 
+  formatLyricsWithTimestamps, 
+  exportToPerchanceGenerator 
+} from './clientAudioIntelligence';
 interface ErrorBoundaryProps {
   children: React.ReactNode;
 }
@@ -179,7 +184,7 @@ interface OpenRouterModel {
   isFree: boolean;
 }
 
-interface Beat {
+export interface Beat {
     lyric: string;
     beat?: string;
     duration?: number;
@@ -648,6 +653,8 @@ export const App: React.FC = () => {
   const [showBeatSegmentationModal, setShowBeatSegmentationModal] = useState<boolean>(false);
   const [aiEditorCommand, setAiEditorCommand] = useState('');
   const [aiEditorLoading, setAiEditorLoading] = useState(false);
+  const [isListeningSpeech, setIsListeningSpeech] = useState<boolean>(false);
+  const speechRecognitionRef = useRef<any>(null);
   const [imageIntegrationLevel, setImageIntegrationLevel] = useState<'low' | 'balanced' | 'high'>('balanced');
   const [sceneSplitThreshold, setSceneSplitThreshold] = useState<number>(50);
   const [showBulkActionMenu, setShowBulkActionMenu] = useState<'camera' | 'transition' | null>(null);
@@ -1836,18 +1843,6 @@ IMPORTANT: Respond with ONLY a valid, complete JSON array of scene objects. Do n
 
 
   const handleAudioIntelligence = async () => {
-    if (provider !== 'gemini') {
-        setErrorMessage({
-            title: "Gemini Exclusive Feature",
-            body: "Audio Intelligence requires the advanced multimodal capabilities of Gemini. Please switch your provider to 'Gemini' in Settings to use this feature.",
-            action: () => {
-                setShowSettings(true);
-                setSettingsTab('config');
-            }
-        });
-        return;
-    }
-    
     if (!audioFile || !audioUrl || audioDuration === 0) {
       setErrorMessage("Please upload an audio file and wait for it to load before analyzing.");
       return;
@@ -1856,26 +1851,28 @@ IMPORTANT: Respond with ONLY a valid, complete JSON array of scene objects. Do n
     setLoading(true);
     setStoryboard(null);
     stopRef.current = false;
-    setProgress('Listening to the track...');
+    setProgress('Analyzing audio track...');
     
     try {
-        const base64 = (await fileToBase64(audioFile)).split(',')[1];
         const style = VISUAL_STYLES.find(s => s.id === selectedStyleId) || VISUAL_STYLES[0];
         const influenceList = getInfluenceDescriptions(selectedInfluences, customInfluences);
         const referenceContext = visualRefs.length > 0 ? `CASTING DIRECTIVE:\nMain Characters:\n${visualRefs.map((r, i) => `CHARACTER ${i+1}: "${r.name}" - Appearance: ${r.description}`).join('\n')}\n` : "";
 
         const exactDuration = Math.floor(audioDuration);
-        
+        let beats: Beat[] = [];
+
         // --- STEP 1: Audio Breakdown ---
-        setProgress('Analyzing rhythm and timing...');
-        const breakdownPrompt = {
-            parts: [
-                { inlineData: { mimeType: audioFile.type, data: base64 } },
-                { text: `Analyze this audio track, which is exactly ${exactDuration} seconds long. Break it down into timed scenes.` }
-            ]
-        };
-        const breakdownSystemInstruction = `You are a music video script supervisor. Listen to this audio and break it down into timed scenes.
-        
+        if (provider === 'gemini') {
+            setProgress('Listening to the track with Gemini Multimodal...');
+            const base64 = (await fileToBase64(audioFile)).split(',')[1];
+            const breakdownPrompt = {
+                parts: [
+                    { inlineData: { mimeType: audioFile.type, data: base64 } },
+                    { text: `Analyze this audio track, which is exactly ${exactDuration} seconds long. Break it down into timed scenes.` }
+                ]
+            };
+            const breakdownSystemInstruction = `You are a music video script supervisor. Listen to this audio and break it down into timed scenes.
+            
 GOAL: The sum of all 'duration' values MUST equal exactly ${exactDuration} seconds. This is critical.
 CONSTRAINT: Individual scene durations must be between 4 and 10 seconds. Break longer lyrical or instrumental passages into multiple shots.
 
@@ -1887,31 +1884,75 @@ TASKS:
 
 OUTPUT: Return ONLY a valid JSON Array of objects with keys: "lyric", "duration", and "groupName".`;
 
-        const breakdownResult = await generateContentServer({
-            model: geminiUtilityModel,
-            contents: breakdownPrompt,
-            config: {
-                systemInstruction: breakdownSystemInstruction,
-                responseMimeType: 'application/json',
-                responseSchema: {
-                    type: Type.ARRAY,
-                    items: {
-                        type: Type.OBJECT,
-                        properties: {
-                            lyric: { type: Type.STRING },
-                            duration: { type: Type.NUMBER },
-                            groupName: { type: Type.STRING }
-                        },
-                        required: ["lyric", "duration"]
+            const breakdownResult = await generateContentServer({
+                model: geminiUtilityModel,
+                contents: breakdownPrompt,
+                config: {
+                    systemInstruction: breakdownSystemInstruction,
+                    responseMimeType: 'application/json',
+                    responseSchema: {
+                        type: Type.ARRAY,
+                        items: {
+                            type: Type.OBJECT,
+                            properties: {
+                                lyric: { type: Type.STRING },
+                                duration: { type: Type.NUMBER },
+                                groupName: { type: Type.STRING }
+                            },
+                            required: ["lyric", "duration"]
+                        }
                     }
                 }
+            });
+
+            if (stopRef.current) return;
+            updateUsage(breakdownResult);
+            beats = normalizeKeys(JSON.parse(cleanJSON(breakdownResult.text || '[]')));
+        } else {
+            // Client-Side Web Audio Breakdown
+            setProgress('Computing Web Audio rhythm, intensity profile & beat peaks...');
+            let intensityToUse = audioIntensityData;
+            let dropsToUse = detectedBeatDrops;
+
+            if (!intensityToUse && audioFile) {
+                try {
+                    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+                    const arrayBuffer = await audioFile.arrayBuffer();
+                    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+                    intensityToUse = extractIntensityFromAudioBuffer(audioBuffer);
+                    setAudioIntensityData(intensityToUse);
+                    dropsToUse = detectAudioPeakDrops(intensityToUse, audioBuffer.duration, {
+                        sensitivity: snapSensitivity,
+                        minDistanceSeconds: snapMinSceneDuration
+                    });
+                    setDetectedBeatDrops(dropsToUse);
+                    audioContext.close();
+                } catch (e) {
+                    console.warn("Client-side audio analysis fallback", e);
+                }
             }
-        });
-        
-        if (stopRef.current) return;
-        updateUsage(breakdownResult);
-        const beats: Beat[] = normalizeKeys(JSON.parse(cleanJSON(breakdownResult.text || '[]')));
-        
+
+            const clientBeats = generateClientSideBeats(
+                audioDuration,
+                intensityToUse,
+                dropsToUse,
+                lyrics,
+                {
+                    minSceneDuration: 4.0,
+                    maxSceneDuration: 10.0,
+                    targetSceneDuration: 6.0,
+                    sensitivity: snapSensitivity
+                }
+            );
+
+            beats = clientBeats.map(cb => ({
+                lyric: cb.lyric,
+                beat: cb.beat,
+                duration: cb.duration,
+                groupName: cb.groupName
+            }));
+        }
+
         // Normalize durations to match exactDuration
         const currentTotal = beats.reduce((acc, b) => acc + (b.duration || 0), 0);
         if (currentTotal > 0 && Math.abs(currentTotal - exactDuration) > 0.1) {
@@ -1970,29 +2011,37 @@ OUTPUT: Return ONLY a valid JSON Array of objects for THIS BATCH.
 Keys: "lyric", "description", "imagePrompt", "videoPrompts", "soraPrompt", "groupName".`;
             
             try {
-                const batchResult = await generateContentServer({
-                    model: geminiMainModel,
-                    contents: batchDetailingPrompt,
-                    config: {
-                        responseMimeType: 'application/json',
-                        responseSchema: {
-                            type: Type.ARRAY, items: {
-                                type: Type.OBJECT, properties: {
-                                    lyric: { type: Type.STRING },
-                                    description: { type: Type.STRING },
-                                    imagePrompt: { type: Type.STRING },
-                                    videoPrompts: { type: Type.ARRAY, items: { type: Type.STRING } },
-                                    soraPrompt: { type: Type.STRING },
-                                    groupName: { type: Type.STRING }
-                                }, required: ["lyric", "description", "imagePrompt", "videoPrompts", "soraPrompt"]
+                let batchJsonText = '';
+                if (provider === 'gemini') {
+                    const batchResult = await generateContentServer({
+                        model: geminiMainModel,
+                        contents: batchDetailingPrompt,
+                        config: {
+                            responseMimeType: 'application/json',
+                            responseSchema: {
+                                type: Type.ARRAY, items: {
+                                    type: Type.OBJECT, properties: {
+                                        lyric: { type: Type.STRING },
+                                        description: { type: Type.STRING },
+                                        imagePrompt: { type: Type.STRING },
+                                        videoPrompts: { type: Type.ARRAY, items: { type: Type.STRING } },
+                                        soraPrompt: { type: Type.STRING },
+                                        groupName: { type: Type.STRING }
+                                    }, required: ["lyric", "description", "imagePrompt", "videoPrompts", "soraPrompt"]
+                                }
                             }
                         }
-                    }
-                });
+                    });
+
+                    if (stopRef.current) return;
+                    updateUsage(batchResult);
+                    batchJsonText = batchResult.text || '[]';
+                } else {
+                    batchJsonText = await performProviderRequest(batchDetailingPrompt, true);
+                }
 
                 if (stopRef.current) return;
-                updateUsage(batchResult);
-                const batchData: any[] = normalizeKeys(JSON.parse(cleanJSON(batchResult.text || '[]')));
+                const batchData: any[] = normalizeKeys(JSON.parse(cleanJSON(batchJsonText)));
                 
                 const processedBatch = batchData.map((detail, index) => {
                     const originalBeat = batch[index];
@@ -2055,6 +2104,83 @@ Keys: "lyric", "description", "imagePrompt", "videoPrompts", "soraPrompt", "grou
         setLoading(false);
         setBatchGenState(prev => ({ ...prev, generating: false }));
     }
+  };
+
+  const toggleSpeechDictation = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setNotification("Speech Recognition is not supported in this browser. Please use Chrome, Edge, or Safari.");
+      setTimeout(() => setNotification(null), 3500);
+      return;
+    }
+
+    if (isListeningSpeech) {
+      try {
+        speechRecognitionRef.current?.stop();
+      } catch {}
+      setIsListeningSpeech(false);
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+
+      recognition.onstart = () => {
+        setIsListeningSpeech(true);
+        setNotification("Microphone active: Speak or play lyrics to transcribe...");
+      };
+
+      recognition.onresult = (event: any) => {
+        let final = '';
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            final += event.results[i][0].transcript + '\n';
+          }
+        }
+        if (final) {
+          setLyrics(prev => prev ? `${prev.trim()}\n${final.trim()}` : final.trim());
+        }
+      };
+
+      recognition.onerror = (event: any) => {
+        console.warn("Speech recognition notice", event);
+        setIsListeningSpeech(false);
+      };
+
+      recognition.onend = () => {
+        setIsListeningSpeech(false);
+      };
+
+      speechRecognitionRef.current = recognition;
+      recognition.start();
+    } catch (err: any) {
+      console.error("Failed to start speech recognition", err);
+      setIsListeningSpeech(false);
+    }
+  };
+
+  const handleAlignLyricsToAudio = () => {
+    if (!audioDuration || audioDuration === 0) {
+      setNotification("Please upload an audio file first to align lyrics to audio timestamps.");
+      setTimeout(() => setNotification(null), 3000);
+      return;
+    }
+
+    const beats = generateClientSideBeats(
+      audioDuration,
+      audioIntensityData,
+      detectedBeatDrops,
+      lyrics,
+      { sensitivity: snapSensitivity }
+    );
+
+    const formatted = formatLyricsWithTimestamps(lyrics, beats);
+    setLyrics(formatted);
+    setNotification("Lyrics synchronized with audio scene timestamps!");
+    setTimeout(() => setNotification(null), 3000);
   };
 
   const visualize = () => {
@@ -4785,7 +4911,7 @@ Output ONLY valid JSON with keys:
     await exportStoryboardAsPDF(filename);
   };
 
-  const handleExport = async (type: 'json' | 'txt' | 'image_txt' | 'video_txt' | 'image_csv' | 'shotlist_csv' | 'zip' | 'sora_txt' | 'comfy_image' | 'comfy_video' | 'screenplay' | 'lrc' | 'wunderbar' | 'google_flow' | 'google_flow_apps_script') => {
+  const handleExport = async (type: 'json' | 'txt' | 'image_txt' | 'video_txt' | 'image_csv' | 'shotlist_csv' | 'zip' | 'sora_txt' | 'comfy_image' | 'comfy_video' | 'screenplay' | 'lrc' | 'wunderbar' | 'google_flow' | 'google_flow_apps_script' | 'perchance') => {
       if (!storyboard && !['json', 'lrc', 'wunderbar', 'google_flow', 'google_flow_apps_script'].includes(type)) return setErrorMessage("No storyboard to export.");
       if (type === 'lrc' && !storyboard && (!lyrics || !lyrics.trim())) return setErrorMessage("Please enter lyrics or create a storyboard first to export an .lrc lyric sheet.");
       
@@ -4921,6 +5047,11 @@ Output ONLY valid JSON with keys:
               content = getGoogleAppsScriptCode();
               filename = getExportFilename('google_flow_automation', 'js');
               mime = "text/javascript";
+              break;
+          case 'perchance':
+              content = exportToPerchanceGenerator(storyboard!, projectName || 'AudioArc Project', narrative, selectedStyle.name);
+              filename = getExportFilename('perchance_generator', 'txt');
+              mime = "text/plain";
               break;
           case 'zip':
                 // This case is handled by handleExportProjectZip
@@ -6527,7 +6658,35 @@ ${JSON.stringify(simplifiedBatch, null, 2)}
                 <div className="bg-[#121212] border border-white/10 rounded-xl p-1 flex flex-col shadow-2xl relative group shrink-0">
                     <div className="bg-white/5 px-4 py-3 rounded-t-lg flex justify-between items-center border-b border-white/5">
                         <label className="text-sm font-bold text-gray-300 uppercase tracking-wider flex items-center gap-2"> <FileText size={16} className="text-blue-500"/> Script / Lyrics </label>
-                        <button onClick={()=>{const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([lyrics])); a.download='lyrics.txt'; a.click();}} className="text-[10px] text-gray-500 hover:text-white flex gap-1 items-center transition-colors"><Save size={12}/> Save</button>
+                        <div className="flex items-center gap-2">
+                          <button 
+                            type="button"
+                            onClick={toggleSpeechDictation} 
+                            className={`text-[10px] px-2.5 py-1 rounded-lg border flex gap-1.5 items-center transition-all font-medium ${isListeningSpeech ? 'bg-red-950/90 text-red-300 border-red-500 animate-pulse shadow-md shadow-red-900/30' : 'bg-white/5 text-gray-300 hover:text-white border-white/10 hover:bg-white/10'}`}
+                            title={isListeningSpeech ? "Stop Speech Transcription" : "Transcribe live mic / audio input using Web Speech API"}
+                          >
+                            <Mic size={12} className={isListeningSpeech ? 'text-red-400 fill-red-400' : 'text-gray-400'}/>
+                            <span>{isListeningSpeech ? 'Listening...' : 'Transcribe'}</span>
+                          </button>
+                          <button 
+                            type="button"
+                            onClick={handleAlignLyricsToAudio} 
+                            disabled={!audioFile || audioDuration === 0}
+                            className="text-[10px] px-2.5 py-1 rounded-lg bg-white/5 text-gray-300 hover:text-white border border-white/10 hover:bg-white/10 flex gap-1.5 items-center transition-colors disabled:opacity-40 font-medium"
+                            title="Auto-align lyric stanzas to detected Web Audio beats & scene boundaries"
+                          >
+                            <Wand2 size={12} className="text-emerald-400"/>
+                            <span>Align to Audio</span>
+                          </button>
+                          <button 
+                            type="button"
+                            onClick={()=>{const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([lyrics])); a.download='lyrics.txt'; a.click();}} 
+                            className="text-[10px] px-2.5 py-1 rounded-lg bg-white/5 text-gray-400 hover:text-white border border-white/10 hover:bg-white/10 flex gap-1 items-center transition-colors font-medium"
+                          >
+                            <Save size={12}/>
+                            <span>Save</span>
+                          </button>
+                        </div>
                     </div>
                     <textarea className="w-full bg-[#0a0a0a] rounded-b-lg p-4 text-sm mono-font outline-none resize-none focus:bg-black transition-colors text-gray-300 placeholder-gray-700 custom-scrollbar leading-relaxed" rows={20} placeholder={`[Intro]
 *vinyl crackle*
@@ -6660,9 +6819,9 @@ The old city. The weeping wall. Let's all go and remember.
                     <label className="text-xs font-bold text-gray-300 uppercase tracking-wider mb-3 flex items-center gap-2"><Clapperboard size={14} className="text-red-500"/> Director's Console</label>
                     <div className="flex flex-col gap-3 shrink-0">
                         <button onClick={handleAudioIntelligence} disabled={loading || !audioFile} className="w-full px-4 py-3 rounded-xl bg-[#1a1a1a] border border-white/10 hover:bg-white/5 text-gray-300 font-bold text-xs uppercase tracking-wide transition-all flex items-center justify-center gap-2 hover:text-white disabled:opacity-50 relative">
-                            <Wand2 size={16} className="text-green-400"/>
+                            <Wand2 size={16} className="text-emerald-400"/>
                             Audio Intelligence
-                            <span className="absolute top-1 right-1 text-[8px] bg-blue-900/50 text-blue-300 px-1.5 py-0.5 rounded-full border border-blue-500/30">Gemini Exclusive</span>
+                            <span className="absolute top-1 right-1 text-[8px] bg-emerald-950/70 text-emerald-300 px-1.5 py-0.5 rounded-full border border-emerald-500/40 font-mono">Web Audio + AI</span>
                         </button>
                         
                         <button onClick={handleGenerate} disabled={loading} className="w-full py-4 rounded-xl font-bold text-white shadow-lg shadow-blue-900/20 bg-gradient-to-r from-blue-700 to-indigo-800 hover:from-blue-600 hover:to-indigo-700 transition-all flex items-center justify-center gap-3 uppercase tracking-wide disabled:opacity-50">
@@ -10719,6 +10878,7 @@ The old city. The weeping wall. Let's all go and remember.
                       <button onClick={()=>{setShowExport(false); handleExportPDF();}} className="export-btn"><Printer size={24} className="text-blue-400"/> Storyboard PDF</button>
                       <button onClick={()=>handleExport('comfy_image')} className="export-btn"><Cpu size={24} className="text-green-400"/> Comfy Image</button>
                       <button onClick={()=>handleExport('comfy_video')} className="export-btn"><Cpu size={24} className="text-emerald-400"/> Comfy Video</button>
+                      <button onClick={()=>handleExport('perchance')} className="export-btn border-purple-500/40 bg-purple-950/20 hover:bg-purple-900/40 text-purple-300 font-bold" title="Download ready-to-paste Perchance.org generator code (.txt)"><Sparkles size={24} className="text-purple-400"/> Perchance Code</button>
                       <button onClick={()=>handleExport('wunderbar')} className="export-btn" title="Download Wunderbar! Perchance AI prompt variation guide"><Sparkles size={24} className="text-amber-400"/> Wunderbar! Guide</button>
                       <button onClick={()=>{setShowExport(false); setShowSlideshow(true); setSlideshowIndex(0);}} className="export-btn"><Monitor size={24} className="text-blue-500"/> Slideshow</button>
                       <button onClick={()=>{setShowExport(false); setShowAnimaticModal(true);}} className="export-btn"><Film size={24} className="text-red-500"/> Animatic</button>
